@@ -1,26 +1,36 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { supabase } from './src/lib/supabase';
+import LoginScreen from './src/screens/auth/LoginScreen';
+import RegisterScreen from './src/screens/auth/RegisterScreen';
+import { View, Text, StyleSheet } from 'react-native';
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.logo}>💪 FitPro</Text>
-        <Text style={styles.subtitle}>Seu app de educação física</Text>
+  const [screen, setScreen] = useState('login');
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+  }, []);
+
+  if (session) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.text}>✅ Logado como:</Text>
+        <Text style={styles.email}>{session.user.email}</Text>
       </View>
+    );
+  }
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Bem-vindo!</Text>
-        <Text style={styles.cardText}>O projeto está configurado e funcionando. Agora vamos construir as telas!</Text>
-      </View>
+  if (screen === 'register') {
+    return <RegisterScreen onNavigate={setScreen} />;
+  }
 
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Começar →</Text>
-      </TouchableOpacity>
-
-      <StatusBar style="light" />
-    </View>
-  );
+  return <LoginScreen onNavigate={setScreen} />;
 }
 
 const styles = StyleSheet.create({
@@ -29,48 +39,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#0f172a',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
   },
-  header: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  logo: {
-    fontSize: 48,
+  text: {
+    fontSize: 18,
+    color: '#94a3b8',
     marginBottom: 8,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#94a3b8',
-  },
-  card: {
-    backgroundColor: '#1e293b',
-    borderRadius: 16,
-    padding: 24,
-    width: '100%',
-    maxWidth: 400,
-    marginBottom: 24,
-  },
-  cardTitle: {
+  email: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#f1f5f9',
-    marginBottom: 8,
-  },
-  cardText: {
-    fontSize: 14,
-    color: '#94a3b8',
-    lineHeight: 22,
-  },
-  button: {
-    backgroundColor: '#22c55e',
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 12,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#22c55e',
   },
 });
