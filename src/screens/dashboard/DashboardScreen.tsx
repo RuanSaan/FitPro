@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import IMCScreen from '../calculators/IMCScreen';
+import CaloriasScreen from '../calculators/CaloriasScreen';
+import MetasScreen from '../MetasScreen';
 
 type Props = {
   session: any;
@@ -23,6 +25,14 @@ export default function DashboardScreen({ session }: Props) {
 
   if (currentScreen === 'imc') {
     return <IMCScreen onBack={() => setCurrentScreen('dashboard')} />;
+  }
+
+  if (currentScreen === 'calorias') {
+    return <CaloriasScreen onBack={() => setCurrentScreen('dashboard')} />;
+  }
+
+  if (currentScreen === 'metas') {
+    return <MetasScreen onBack={() => setCurrentScreen('dashboard')} />;
   }
 
   return (
@@ -74,7 +84,10 @@ export default function DashboardScreen({ session }: Props) {
           <Text style={styles.menuLabel}>Calculadora IMC</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => setCurrentScreen('calorias')}
+        >
           <Text style={styles.menuEmoji}>🔥</Text>
           <Text style={styles.menuLabel}>Calorias</Text>
         </TouchableOpacity>
@@ -84,7 +97,10 @@ export default function DashboardScreen({ session }: Props) {
           <Text style={styles.menuLabel}>Treinos</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => setCurrentScreen('metas')}
+        >
           <Text style={styles.menuEmoji}>🎯</Text>
           <Text style={styles.menuLabel}>Minhas Metas</Text>
         </TouchableOpacity>
