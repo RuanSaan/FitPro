@@ -10,6 +10,7 @@ import { supabase } from '../../lib/supabase';
 import IMCScreen from '../calculators/IMCScreen';
 import CaloriasScreen from '../calculators/CaloriasScreen';
 import MetasScreen from '../MetasScreen';
+import TreinosScreen from '../TreinosScreen';
 
 type Props = {
   session: any;
@@ -26,13 +27,14 @@ export default function DashboardScreen({ session }: Props) {
   if (currentScreen === 'imc') {
     return <IMCScreen onBack={() => setCurrentScreen('dashboard')} />;
   }
-
   if (currentScreen === 'calorias') {
     return <CaloriasScreen onBack={() => setCurrentScreen('dashboard')} />;
   }
-
   if (currentScreen === 'metas') {
     return <MetasScreen onBack={() => setCurrentScreen('dashboard')} />;
+  }
+  if (currentScreen === 'treinos') {
+    return <TreinosScreen onBack={() => setCurrentScreen('dashboard')} />;
   }
 
   return (
@@ -92,7 +94,10 @@ export default function DashboardScreen({ session }: Props) {
           <Text style={styles.menuLabel}>Calorias</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => setCurrentScreen('treinos')}
+        >
           <Text style={styles.menuEmoji}>🏋️</Text>
           <Text style={styles.menuLabel}>Treinos</Text>
         </TouchableOpacity>
