@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from './src/lib/supabase';
 import LoginScreen from './src/screens/auth/LoginScreen';
 import RegisterScreen from './src/screens/auth/RegisterScreen';
-import { View, Text, StyleSheet } from 'react-native';
+import DashboardScreen from './src/screens/dashboard/DashboardScreen';
 
 export default function App() {
   const [screen, setScreen] = useState('login');
@@ -18,12 +18,7 @@ export default function App() {
   }, []);
 
   if (session) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.text}>✅ Logado como:</Text>
-        <Text style={styles.email}>{session.user.email}</Text>
-      </View>
-    );
+    return <DashboardScreen session={session} />;
   }
 
   if (screen === 'register') {
@@ -32,22 +27,3 @@ export default function App() {
 
   return <LoginScreen onNavigate={setScreen} />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    fontSize: 18,
-    color: '#94a3b8',
-    marginBottom: 8,
-  },
-  email: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#22c55e',
-  },
-});
