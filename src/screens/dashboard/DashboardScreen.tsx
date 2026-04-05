@@ -12,6 +12,7 @@ import CaloriasScreen from '../calculators/CaloriasScreen';
 import MetasScreen from '../MetasScreen';
 import TreinosScreen from '../TreinosScreen';
 import PerfilScreen from '../PerfilScreen';
+import NutricaoScreen from '../NutricaoScreen';
 
 type Props = {
   session: any;
@@ -39,6 +40,9 @@ export default function DashboardScreen({ session }: Props) {
   }
   if (currentScreen === 'perfil') {
     return <PerfilScreen onBack={() => setCurrentScreen('dashboard')} session={session} />;
+  }
+  if (currentScreen === 'nutricao') {
+    return <NutricaoScreen onBack={() => setCurrentScreen('dashboard')} />;
   }
 
   return (
@@ -114,7 +118,10 @@ export default function DashboardScreen({ session }: Props) {
           <Text style={styles.menuLabel}>Minhas Metas</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => setCurrentScreen('nutricao')}
+        >
           <Text style={styles.menuEmoji}>🍽️</Text>
           <Text style={styles.menuLabel}>Nutrição</Text>
         </TouchableOpacity>
