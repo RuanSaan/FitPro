@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,14 +6,17 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
+import { supabase } from '../lib/supabase';
 
 type Props = {
   onBack: () => void;
+  session: any;
 };
 
 type Refeicao = {
-  id: number;
+  id: string;
   nome: string;
   calorias: number;
   proteina: number;
@@ -22,14 +25,11 @@ type Refeicao = {
   horario: string;
 };
 
-export default function NutricaoScreen({ onBack }: Props) {
-  const [refeicoes, setRefeicoes] = useState<Refeicao[]>([
-    { id: 1, nome: 'Café da manhã', calorias: 400, proteina: 20, carbo: 50, gordura: 10, horario: '07:00' },
-    { id: 2, nome: 'Almoço', calorias: 650, proteina: 40, carbo: 70, gordura: 15, horario: '12:00' },
-    { id: 3, nome: 'Lanche', calorias: 200, proteina: 10, carbo: 25, gordura: 5, horario: '15:00' },
-  ]);
-
+export default function NutricaoScreen({ onBack, session }: Props) {
+  const [refeicoes, setRefeicoes] = useState<Refeicao[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [nome, setNome] = useState('');
   const [calorias, setCalorias] = useState('');
   const [proteina, setProteina] = useState('');
@@ -44,29 +44,62 @@ export default function NutricaoScreen({ onBack }: Props) {
   const totalGordura = refeicoes.reduce((sum, r) => sum + r.gordura, 0);
   const progresso = Math.min((totalCalorias / metaCalorias) * 100, 100);
 
-  function addRefeicao() {
+  useEffect(() => {
+    loadRefeicoes();
+  }, []);
+
+  async function loadRefeicoes() {
+    setLoading(true);
+    const today = new Date().toISOString().split('T')[0];
+    const { data, error } = await supabase
+      .from('meals')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .eq('data', today)
+      .order('created_at', { ascending: true });
+
+    if (data) setRefeicoes(data);
+    setLoading(false);
+  }
+
+  async function addRefeicao() {
     if (!nome || !calorias) return;
-    const nova: Refeicao = {
-      id: Date.now(),
+    setSaving(true);
+
+    const { data, error } = await supabase.from('meals').insert({
+      user_id: session.user.id,
       nome,
       calorias: parseInt(calorias) || 0,
       proteina: parseInt(proteina) || 0,
       carbo: parseInt(carbo) || 0,
       gordura: parseInt(gordura) || 0,
       horario,
-    };
-    setRefeicoes([...refeicoes, nova]);
-    setNome('');
-    setCalorias('');
-    setProteina('');
-    setCarbo('');
-    setGordura('');
-    setHorario('');
-    setShowForm(false);
+    }).select().single();
+
+    setSaving(false);
+    if (data) {
+      setRefeicoes([...refeicoes, data]);
+      setNome('');
+      setCalorias('');
+      setProteina('');
+      setCarbo('');
+      setGordura('');
+      setHorario('');
+      setShowForm(false);
+    }
   }
 
-  function deleteRefeicao(id: number) {
+  async function deleteRefeicao(id: string) {
+    await supabase.from('meals').delete().eq('id', id);
     setRefeicoes(refeicoes.filter((r) => r.id !== id));
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#22c55e" />
+      </View>
+    );
   }
 
   return (
@@ -209,14 +242,32 @@ export default function NutricaoScreen({ onBack }: Props) {
             </View>
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={addRefeicao}>
-            <Text style={styles.buttonText}>Adicionar refeição</Text>
+          <TouchableOpacity
+            style={[styles.button, saving && styles.buttonDisabled]}
+            onPress={addRefeicao}
+            disabled={saving}
+          >
+            {saving ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Adicionar refeição</Text>
+            )}
           </TouchableOpacity>
         </View>
       )}
 
       {/* Lista de refeições */}
-      <Text style={styles.sectionTitle}>Refeições de hoje</Text>
+      <Text style={styles.sectionTitle}>
+        Refeições de hoje {refeicoes.length > 0 ? `(${refeicoes.length})` : ''}
+      </Text>
+
+      {refeicoes.length === 0 && (
+        <View style={styles.emptyBox}>
+          <Text style={styles.emptyText}>Nenhuma refeição registrada hoje</Text>
+          <Text style={styles.emptySubtext}>Toque em "+ Adicionar" para começar!</Text>
+        </View>
+      )}
+
       {refeicoes.map((r) => (
         <View key={r.id} style={styles.refeicaoCard}>
           <View style={styles.refeicaoHeader}>
@@ -247,6 +298,7 @@ export default function NutricaoScreen({ onBack }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0f172a' },
   content: { padding: 24, paddingTop: 60, paddingBottom: 40 },
+  loadingContainer: { flex: 1, backgroundColor: '#0f172a', alignItems: 'center', justifyContent: 'center' },
   backBtn: { marginBottom: 24 },
   backText: { color: '#22c55e', fontSize: 16 },
   headerRow: {
@@ -319,8 +371,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 16,
   },
+  buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#f1f5f9', marginBottom: 12 },
+  emptyBox: { alignItems: 'center', padding: 32 },
+  emptyText: { fontSize: 15, color: '#475569', marginBottom: 4 },
+  emptySubtext: { fontSize: 13, color: '#334155' },
   refeicaoCard: {
     backgroundColor: '#1e293b',
     borderRadius: 14,

@@ -42,8 +42,8 @@ export default function DashboardScreen({ session }: Props) {
     return <PerfilScreen onBack={() => setCurrentScreen('dashboard')} session={session} />;
   }
   if (currentScreen === 'nutricao') {
-    return <NutricaoScreen onBack={() => setCurrentScreen('dashboard')} />;
-  }
+  return <NutricaoScreen onBack={() => setCurrentScreen('dashboard')} session={session} />;
+}
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
