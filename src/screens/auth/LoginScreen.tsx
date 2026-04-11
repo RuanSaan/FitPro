@@ -28,33 +28,43 @@ export default function LoginScreen({ onNavigate }: { onNavigate: (screen: strin
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.logo}>💪</Text>
-        <Text style={styles.title}>FitPro</Text>
-        <Text style={styles.subtitle}>Entre na sua conta</Text>
+      <View style={styles.topAccent} />
+
+      <View style={styles.logoArea}>
+        <View style={styles.logoCircle}>
+          <Text style={styles.logoEmoji}>💪</Text>
+        </View>
+        <Text style={styles.appName}>FIT<Text style={styles.appNameAccent}>PRO</Text></Text>
+        <Text style={styles.tagline}>TREINE. EVOLUA. SUPERE.</Text>
       </View>
 
-      <View style={styles.form}>
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="seu@email.com"
-          placeholderTextColor="#475569"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Bem-vindo de volta!</Text>
 
-        <Text style={styles.label}>Senha</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="••••••••"
-          placeholderTextColor="#475569"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+        <View style={styles.inputWrapper}>
+          <Text style={styles.inputIcon}>✉️</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#6b7280"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.inputWrapper}>
+          <Text style={styles.inputIcon}>🔒</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Senha"
+            placeholderTextColor="#6b7280"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+        </View>
 
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
@@ -64,14 +74,16 @@ export default function LoginScreen({ onNavigate }: { onNavigate: (screen: strin
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Entrar</Text>
+            <Text style={styles.buttonText}>ENTRAR →</Text>
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => onNavigate('register')}>
-          <Text style={styles.link}>Não tem conta? <Text style={styles.linkBold}>Cadastre-se</Text></Text>
+        <TouchableOpacity onPress={() => onNavigate('register')} style={styles.linkBtn}>
+          <Text style={styles.linkText}>Não tem conta? <Text style={styles.linkBold}>Cadastre-se</Text></Text>
         </TouchableOpacity>
       </View>
+
+      <View style={styles.bottomAccent} />
     </View>
   );
 }
@@ -79,71 +91,111 @@ export default function LoginScreen({ onNavigate }: { onNavigate: (screen: strin
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
-    padding: 24,
+    backgroundColor: '#0a0a0a',
     justifyContent: 'center',
+    padding: 24,
   },
-  header: {
+  topAccent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: '#f97316',
+  },
+  bottomAccent: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: '#f97316',
+  },
+  logoArea: {
     alignItems: 'center',
     marginBottom: 40,
   },
-  logo: {
-    fontSize: 56,
-    marginBottom: 8,
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#f97316',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    shadowColor: '#f97316',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#f1f5f9',
-    marginBottom: 4,
+  logoEmoji: { fontSize: 36 },
+  appName: {
+    fontSize: 36,
+    fontWeight: '900',
+    color: '#ffffff',
+    letterSpacing: 4,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#94a3b8',
+  appNameAccent: { color: '#f97316' },
+  tagline: {
+    fontSize: 11,
+    color: '#6b7280',
+    letterSpacing: 3,
+    marginTop: 4,
   },
-  form: {
-    width: '100%',
+  card: {
+    backgroundColor: '#111111',
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#1f1f1f',
     maxWidth: 400,
+    width: '100%',
     alignSelf: 'center',
   },
-  label: {
-    fontSize: 14,
-    color: '#94a3b8',
-    marginBottom: 6,
-    marginTop: 16,
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 24,
   },
-  input: {
-    backgroundColor: '#1e293b',
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
     borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    color: '#f1f5f9',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#2a2a2a',
+    marginBottom: 12,
+    paddingHorizontal: 14,
+  },
+  inputIcon: { fontSize: 16, marginRight: 10 },
+  input: {
+    flex: 1,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: '#ffffff',
   },
   button: {
-    backgroundColor: '#22c55e',
+    backgroundColor: '#f97316',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 8,
+    shadowColor: '#f97316',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
+  buttonDisabled: { opacity: 0.6 },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '900',
+    letterSpacing: 2,
   },
-  link: {
-    textAlign: 'center',
-    color: '#94a3b8',
-    marginTop: 20,
-    fontSize: 14,
-  },
-  linkBold: {
-    color: '#22c55e',
-    fontWeight: 'bold',
-  },
+  linkBtn: { marginTop: 20, alignItems: 'center' },
+  linkText: { color: '#6b7280', fontSize: 14 },
+  linkBold: { color: '#f97316', fontWeight: 'bold' },
 });

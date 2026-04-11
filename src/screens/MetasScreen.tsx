@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,14 +6,17 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
+import { supabase } from '../lib/supabase';
 
 type Props = {
   onBack: () => void;
+  session: any;
 };
 
 type Meta = {
-  id: number;
+  id: string;
   titulo: string;
   atual: number;
   objetivo: number;
@@ -21,50 +24,74 @@ type Meta = {
   cor: string;
 };
 
-export default function MetasScreen({ onBack }: Props) {
-  const [metas, setMetas] = useState<Meta[]>([
-    { id: 1, titulo: 'Peso atual', atual: 80, objetivo: 70, unidade: 'kg', cor: '#22c55e' },
-    { id: 2, titulo: 'Treinos por semana', atual: 2, objetivo: 5, unidade: 'x', cor: '#3b82f6' },
-    { id: 3, titulo: 'Água diária', atual: 1500, objetivo: 2500, unidade: 'ml', cor: '#06b6d4' },
-  ]);
-
+export default function MetasScreen({ onBack, session }: Props) {
+  const [metas, setMetas] = useState<Meta[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [titulo, setTitulo] = useState('');
   const [atual, setAtual] = useState('');
   const [objetivo, setObjetivo] = useState('');
   const [unidade, setUnidade] = useState('');
   const [showForm, setShowForm] = useState(false);
 
-  function addMeta() {
+  const cores = ['#22c55e', '#3b82f6', '#a855f7', '#f59e0b', '#ef4444', '#06b6d4'];
+  const [corSelecionada, setCorSelecionada] = useState('#a855f7');
+
+  useEffect(() => {
+    loadMetas();
+  }, []);
+
+  async function loadMetas() {
+    setLoading(true);
+    const { data } = await supabase
+      .from('goals')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: true });
+
+    if (data) setMetas(data);
+    setLoading(false);
+  }
+
+  async function addMeta() {
     if (!titulo || !atual || !objetivo) return;
-    const nova: Meta = {
-      id: Date.now(),
+    setSaving(true);
+
+    const { data } = await supabase.from('goals').insert({
+      user_id: session.user.id,
       titulo,
       atual: parseFloat(atual),
       objetivo: parseFloat(objetivo),
       unidade,
-      cor: '#a855f7',
-    };
-    setMetas([...metas, nova]);
-    setTitulo('');
-    setAtual('');
-    setObjetivo('');
-    setUnidade('');
-    setShowForm(false);
+      cor: corSelecionada,
+    }).select().single();
+
+    setSaving(false);
+    if (data) {
+      setMetas([...metas, data]);
+      setTitulo('');
+      setAtual('');
+      setObjetivo('');
+      setUnidade('');
+      setShowForm(false);
+    }
   }
 
-  function deleteMeta(id: number) {
+  async function deleteMeta(id: string) {
+    await supabase.from('goals').delete().eq('id', id);
     setMetas(metas.filter((m) => m.id !== id));
   }
 
   function getProgress(meta: Meta) {
-    if (meta.objetivo === 0) return 0;
-    // Para peso: progresso inverso (quanto menos, melhor)
-    if (meta.titulo.toLowerCase().includes('peso')) {
-      const total = meta.atual - meta.objetivo;
-      const progress = Math.max(0, 1 - total / (meta.atual - meta.objetivo + 1));
-      return Math.min(progress * 100, 100);
-    }
     return Math.min((meta.atual / meta.objetivo) * 100, 100);
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#22c55e" />
+      </View>
+    );
   }
 
   return (
@@ -134,9 +161,39 @@ export default function MetasScreen({ onBack }: Props) {
             onChangeText={setUnidade}
           />
 
-          <TouchableOpacity style={styles.button} onPress={addMeta}>
-            <Text style={styles.buttonText}>Adicionar meta</Text>
+          <Text style={styles.label}>Cor</Text>
+          <View style={styles.coresRow}>
+            {cores.map((cor) => (
+              <TouchableOpacity
+                key={cor}
+                style={[
+                  styles.corBtn,
+                  { backgroundColor: cor },
+                  corSelecionada === cor && styles.corBtnSelected,
+                ]}
+                onPress={() => setCorSelecionada(cor)}
+              />
+            ))}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.button, saving && styles.buttonDisabled]}
+            onPress={addMeta}
+            disabled={saving}
+          >
+            {saving ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Adicionar meta</Text>
+            )}
           </TouchableOpacity>
+        </View>
+      )}
+
+      {metas.length === 0 && !showForm && (
+        <View style={styles.emptyBox}>
+          <Text style={styles.emptyText}>Nenhuma meta cadastrada</Text>
+          <Text style={styles.emptySubtext}>Toque em "+ Nova" para começar!</Text>
         </View>
       )}
 
@@ -196,6 +253,7 @@ export default function MetasScreen({ onBack }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0f172a' },
   content: { padding: 24, paddingTop: 60 },
+  loadingContainer: { flex: 1, backgroundColor: '#0f172a', alignItems: 'center', justifyContent: 'center' },
   backBtn: { marginBottom: 24 },
   backText: { color: '#22c55e', fontSize: 16 },
   headerRow: {
@@ -233,6 +291,9 @@ const styles = StyleSheet.create({
     borderColor: '#334155',
   },
   row: { flexDirection: 'row' },
+  coresRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  corBtn: { width: 32, height: 32, borderRadius: 16 },
+  corBtnSelected: { borderWidth: 3, borderColor: '#fff' },
   button: {
     backgroundColor: '#22c55e',
     borderRadius: 10,
@@ -240,7 +301,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 16,
   },
+  buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
+  emptyBox: { alignItems: 'center', padding: 40 },
+  emptyText: { fontSize: 15, color: '#475569', marginBottom: 4 },
+  emptySubtext: { fontSize: 13, color: '#334155' },
   metaCard: {
     backgroundColor: '#1e293b',
     borderRadius: 16,
